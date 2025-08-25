@@ -7,6 +7,7 @@ import (
 )
 
 type Container struct {
+	GitBranchUsecase usecase.GitBranchUsecase
 	GitCommitUsecase usecase.GitCommitUsecase
 }
 
@@ -21,10 +22,13 @@ func NewContainer() Container {
 	if err != nil {
 		panic(err)
 	}
+
 	// Usecaseの初期化
+	gbu := usecase.NewGitBranchUsecase(fm, gm)
 	gcu := usecase.NewGitCommitUsecase(fm, gm)
 
 	return Container{
+		GitBranchUsecase: gbu,
 		GitCommitUsecase: gcu,
 	}
 }

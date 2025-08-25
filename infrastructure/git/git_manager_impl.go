@@ -52,7 +52,7 @@ func (gm GitManagerImpl) GetCommits() ([]*model.Commit, error) {
 	}
 
 	commitLog := strings.TrimSpace(string(out))
-	commits, err := parseCommits(commitLog)
+	commits, err := model.ParseCommits(commitLog)
 	if err != nil {
 		return nil, err
 	}
@@ -61,26 +61,30 @@ func (gm GitManagerImpl) GetCommits() ([]*model.Commit, error) {
 	return commits, nil
 }
 
-// git log --oneline の形式をパースして、Commit構造体のスライスを返す
-func parseCommits(log string) ([]*model.Commit, error) {
-	var commits []*model.Commit
-
-	lines := strings.Split(strings.TrimSpace(log), "\n")
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		// 最初の空白で分割（commit id と残り）
-		parts := strings.SplitN(line, " ", 2)
-		if len(parts) < 2 {
-			continue
-		}
-
-		id := parts[0]
-		message := parts[1]
-
-		commit := model.NewCommit(id, message, line)
-		commits = append(commits, commit)
+func (gm GitManagerImpl) GetBranches() ([]*model.Branch, error) {
+	cmd := exec.Command("git", "branch", "--all", "--verbose")
+	out, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute git branch command: %w", err)
 	}
-	return commits, nil
+
+	branches, err := model.ParseBranches(string(out))
+	if err != nil {
+		return nil, err
+	}
+	return branches, nil
+}
+
+func (gm GitManagerImpl) ExecuteBranchActionCommand(actionType model.ActionType, branch *model.Branch) error {
+	cmd := exec.Command(actionType.Command, branch.GetOptionsWithBranchInfo(actionType)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// 実行
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to execute command: %w", err)
+	}
+
+	return nil
 }

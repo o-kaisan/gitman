@@ -50,7 +50,6 @@ func TestActionType_GetOptions(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
 			if result := tt.actionType.GetOptions(); result != tt.want {
 				t.Errorf("GetOptions() = %v, want %v", result, tt.want)
 			}
