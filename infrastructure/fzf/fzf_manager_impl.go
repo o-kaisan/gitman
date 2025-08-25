@@ -39,7 +39,7 @@ func isValidFzf() (bool, error) {
 	return true, nil
 }
 
-func (fm FzfManagerImpl) SelectCommitId(commits []*model.Commit) (string, error) {
+func (fm FzfManagerImpl) SelectCommitId(commits []*model.Commit) (*model.Commit, error) {
 	cmd := exec.Command("fzf",
 		"--ansi",
 		"--prompt=gitman-log> ",
@@ -64,20 +64,26 @@ func (fm FzfManagerImpl) SelectCommitId(commits []*model.Commit) (string, error)
 			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
 			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
 				slog.Debug("User cancelled commit id selection")
-				return "", nil
+				return nil, nil
 			}
 		}
-		return "", fmt.Errorf("fzf failed: %w", err)
+		return nil, fmt.Errorf("fzf failed: %w", err)
 	}
 
 	selected := strings.TrimSpace(out.String())
 	if selected == "" {
-		return "", nil // 選択なしはエラーにせず空文字
+		return nil, nil // 選択なしはエラーにせず空文字
 	}
 
 	commitId := strings.Fields(selected)[0]
 	slog.Debug("selected commitId", "commitId", commitId)
-	return commitId, nil
+
+	selectedCommit, err := model.FindCommitById(commits, commitId)
+	if err != nil {
+		return nil, err
+	}
+
+	return selectedCommit, nil
 }
 
 func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionType, error) {

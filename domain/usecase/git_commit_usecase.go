@@ -48,16 +48,12 @@ func (gciu GitCommitUsecase) getCommit() (*model.Commit, error) {
 		return nil, err
 	}
 
-	commitId, err := gciu.fzfManager.SelectCommitId(commits)
+	selectedCommit, err := gciu.fzfManager.SelectCommitId(commits)
 	if err != nil {
 		return nil, err
 	}
-	if commitId == "" {
+	if selectedCommit == nil {
 		return nil, nil
 	}
-	targetCommit, err := model.FindCommitById(commits, commitId)
-	if err != nil {
-		return nil, err
-	}
-	return targetCommit, nil
+	return selectedCommit, nil
 }
