@@ -29,7 +29,7 @@ func validGit() (bool, error) {
 	return false, nil
 }
 
-func (gm GitManagerImpl) ExecuteCommand(actionType model.ActionType, commit *model.Commit) error {
+func (gm GitManagerImpl) ExecuteCommitActionCommand(actionType model.ActionType, commit *model.Commit) error {
 	cmd := exec.Command(actionType.Command, commit.GetOptionsWithCommitId(actionType)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

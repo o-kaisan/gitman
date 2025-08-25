@@ -11,7 +11,7 @@ type CommitActionTypeMap struct {
 	CherryPick              ActionType
 	CherryPickWithoutCommit ActionType
 	Switch                  ActionType
-	UNKNOWN                 ActionType
+	Unknown                 ActionType
 }
 
 var CommitActionTypes = CommitActionTypeMap{
@@ -63,7 +63,7 @@ var CommitActionTypes = CommitActionTypeMap{
 		Options: []string{"switch"},
 		Help:    "Switch branch to commit",
 	},
-	UNKNOWN: ActionType{
+	Unknown: ActionType{
 		Name:    "unknown",
 		Command: "unknown",
 		Options: nil,
@@ -103,6 +103,6 @@ func (c CommitActionTypeMap) GetCommitActionTypes(action string) (ActionType, er
 	case "cherry-pick without commit":
 		return c.CherryPickWithoutCommit, nil
 	default:
-		return c.UNKNOWN, fmt.Errorf("unknown action: %s", action)
+		return c.Unknown, fmt.Errorf("unknown action: %s", action)
 	}
 }

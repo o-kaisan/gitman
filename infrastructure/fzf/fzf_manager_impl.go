@@ -39,7 +39,7 @@ func isValidFzf() (bool, error) {
 	return true, nil
 }
 
-func (fm FzfManagerImpl) SelectCommitId(commits []*model.Commit) (*model.Commit, error) {
+func (fm FzfManagerImpl) SelectCommit(commits []*model.Commit) (*model.Commit, error) {
 	cmd := exec.Command("fzf",
 		"--ansi",
 		"--prompt=gitman-log> ",
@@ -88,7 +88,7 @@ func (fm FzfManagerImpl) SelectCommitId(commits []*model.Commit) (*model.Commit,
 
 func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionType, error) {
 	if commit == nil {
-		return model.ActionType{}, fmt.Errorf("commit cannot be nil")
+		return model.CommitActionTypes.Unknown, fmt.Errorf("commit cannot be nil")
 	}
 
 	// fzfコマンドの基本設定
@@ -125,16 +125,16 @@ func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionT
 			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
 			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
 				slog.Debug("User cancelled action selection")
-				return model.CommitActionTypes.UNKNOWN, nil
+				return model.CommitActionTypes.Unknown, nil
 			}
 		}
-		return model.ActionType{}, fmt.Errorf("fzf failed: %w, stderr: %s", err, errOut.String())
+		return model.CommitActionTypes.Unknown, fmt.Errorf("fzf failed: %w, stderr: %s", err, errOut.String())
 	}
 
 	selected := strings.TrimSpace(out.String())
 	SelectedActionType, err := parseSelectedActionType(selected)
 	if err != nil {
-		return model.ActionType{}, fmt.Errorf("failed to parse selected action type: %w", err)
+		return model.CommitActionTypes.Unknown, fmt.Errorf("failed to parse selected action type: %w", err)
 	}
 
 	return SelectedActionType, nil
@@ -144,7 +144,7 @@ func parseSelectedActionType(selectedLine string) (model.ActionType, error) {
 	slog.Debug("Selected action from fzf", "selected", selectedLine)
 	if selectedLine == "" {
 		slog.Debug("No action selected")
-		return model.CommitActionTypes.UNKNOWN, nil
+		return model.CommitActionTypes.Unknown, nil
 	}
 
 	// タブで分割
@@ -155,7 +155,7 @@ func parseSelectedActionType(selectedLine string) (model.ActionType, error) {
 
 	result, err := model.CommitActionTypes.GetCommitActionTypes(selectedActionType)
 	if err != nil {
-		return model.CommitActionTypes.UNKNOWN, err
+		return model.CommitActionTypes.Unknown, err
 	}
 	return result, nil
 }
