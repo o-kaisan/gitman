@@ -94,7 +94,7 @@ func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionT
 	// fzfコマンドの基本設定
 	cmd := exec.Command("fzf",
 		"--ansi",
-		"--prompt=gitman-action> ",
+		"--prompt=gitman-log> ",
 		"--delimiter", "\t", // タブを区切りに指定
 		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示
 		"--preview", "printf '%s\n%s\n' {2} {3}", // 2列目=fullCommand, 3列目=Help
