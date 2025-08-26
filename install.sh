@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="o-kai/gitman"
+REPO="o-kaisan/gitman"
 INSTALL_DIR="/usr/local/bin"
 BINARY_PREFIX="gitman"
 

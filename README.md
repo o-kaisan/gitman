@@ -68,7 +68,7 @@ gitman br
 
 ## Environment variable
 
-| value | type | defaut | description |
+| value | type | default | description |
 | -- | -- | -- | -- |
 | GITMAN_DEBUG | bool | false |  debug mode (default: "false") |
 | GITMAN_BRANCH_ALIAS | string | br | change branch command alias (default: "br") |
