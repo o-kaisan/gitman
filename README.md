@@ -65,6 +65,13 @@ gitman br
 - select branch action
 ![gitman-log-action](./demo/gitman-log-select-action-demo.png)
 
+### Preview Controls
+
+You can control the preview screen using the following shortcuts:
+
+- `Ctrl + S`: Toggle preview display on/off  
+- `Ctrl + D`: Scroll preview down  
+- `Ctrl + U`: Scroll preview up  
 
 ## Environment variable
 
