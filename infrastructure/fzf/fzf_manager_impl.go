@@ -3,13 +3,16 @@ package fzf
 import (
 	"bytes"
 	"fmt"
+	"gitman/common"
 	"gitman/domain/model"
 	"log/slog"
 	"os/exec"
 	"strings"
 )
 
-type FzfManagerImpl struct{}
+type FzfManagerImpl struct {
+	fzfLayout string
+}
 
 // NewFzfManager は FzfManagerImpl を返す
 func NewFzfManager() (FzfManager, error) {
@@ -18,7 +21,22 @@ func NewFzfManager() (FzfManager, error) {
 		return nil, err
 	}
 
-	return &FzfManagerImpl{}, nil
+	fzfLayout := common.GetEnvWithString("GITMAN_FZF_LAYOUT", "reverse")
+	switch fzfLayout {
+	case "reverse", "default", "reverse-list":
+		break
+	default:
+		// 想定外の文字列が設定されていた場合はreverseにする
+		slog.Warn(
+			"Invalid fzf layout setting. Using '--layout=reverse' instead. Please check the GITMAN_FZF_LAYOUT environment variable (set it to 'default', 'reverse', or 'reverse-list').",
+			"GITMAN_FZF_LAYOUT", fzfLayout,
+		)
+		fzfLayout = "reverse"
+	}
+
+	return &FzfManagerImpl{
+		fzfLayout: fzfLayout,
+	}, nil
 }
 
 // isValidFzf は fzf のバージョンを検証し、fzf がインストールされているかどうかを返す
@@ -43,6 +61,7 @@ func (fm FzfManagerImpl) SelectCommit(commits []*model.Commit) (*model.Commit, e
 	cmd := exec.Command("fzf",
 		"--ansi",
 		"--prompt=gitman-log> ",
+		"--layout="+fm.fzfLayout,
 		"--preview", "echo {} | awk '{print $1}' | xargs git show --color=always --stat -p",
 		"--preview-window=right:60%:wrap",                       // 右側に60%、折り返し表示
 		"--bind", "shift-down:preview-down,shift-up:preview-up", // ctrl+j / ctrl+k で移動
@@ -94,6 +113,7 @@ func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionT
 	// fzfコマンドの基本設定
 	cmd := exec.Command("fzf",
 		"--ansi",
+		"--layout="+fm.fzfLayout,
 		"--prompt=gitman-log> ",
 		"--delimiter", "\t", // タブを区切りに指定
 		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示
@@ -140,10 +160,11 @@ func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionT
 	return SelectedActionType, nil
 }
 
-func (f FzfManagerImpl) SelectBranch(branches []*model.Branch) (*model.Branch, error) {
+func (fm FzfManagerImpl) SelectBranch(branches []*model.Branch) (*model.Branch, error) {
 	cmd := exec.Command("fzf",
 		"--ansi",
 		"--prompt=gitman-branch> ",
+		"--layout="+fm.fzfLayout,
 		"--preview", "echo {} | awk '{print $1}' | xargs git log --oneline --graph --decorate",
 		"--preview-window=down:65%:nowrap",                // 右側に60%、折り返し表示
 		"--bind", "ctrl-d:preview-down,ctrl-u:preview-up", // ctrl+j / ctrl+k で移動
@@ -187,7 +208,7 @@ func (f FzfManagerImpl) SelectBranch(branches []*model.Branch) (*model.Branch, e
 
 }
 
-func (f FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionType, error) {
+func (fm FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionType, error) {
 	if branch == nil {
 		return model.BranchActionTypes.Unknown, fmt.Errorf("branch cannot be nil. ")
 	}
@@ -195,6 +216,7 @@ func (f FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionTy
 	// fzfコマンドの基本設定
 	cmd := exec.Command("fzf",
 		"--ansi",
+		"--layout="+fm.fzfLayout,
 		"--prompt=gitman-branch> ",
 		"--delimiter", "\t", // タブを区切りに指定
 		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示

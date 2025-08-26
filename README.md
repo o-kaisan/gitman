@@ -71,6 +71,7 @@ gitman br
 | value | type | default | description |
 | -- | -- | -- | -- |
 | GITMAN_DEBUG | bool | false |  debug mode (default: "false") |
-| GITMAN_BRANCH_ALIAS | string | br | change branch command alias (default: "br") |
-| GITMAN_LOG_ALIAS | string | l | change log command alias (default: "l") |
-| GITMAN_LOG_DISPLAY_LIMIT | string | 100 |change log display limit (default: "100")|
+| GITMAN_BRANCH_ALIAS | string | br | change branch command alias |
+| GITMAN_LOG_ALIAS | string | l | change log command alias|
+  GITMAN_FZF_LAYOUT | string | reverse | change fzf layout|
+| GITMAN_LOG_DISPLAY_LIMIT | string | 100 |change log display limit|
