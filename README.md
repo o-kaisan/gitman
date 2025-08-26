@@ -83,7 +83,7 @@ You can control the preview screen using the following shortcuts:
 
 | value | type | default | description |
 | -- | -- | -- | -- |
-| GITMAN_DEBUG | bool | false |  debug mode (default: "false") |
+| GITMAN_DEBUG | bool | false |  debug mode|
 | GITMAN_BRANCH_ALIAS | string | br | change branch command alias |
 | GITMAN_LOG_ALIAS | string | l | change log command alias|
   GITMAN_FZF_LAYOUT | string | reverse | change fzf layout|
