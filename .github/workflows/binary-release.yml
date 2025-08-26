@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build and Release (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.2"
+
+      - name: Build binary (Linux amd64)
+        run: |
+          mkdir -p dist
+          TAG="${GITHUB_REF_NAME}"
+          BINARY_NAME="gitman-${TAG}"
+          GOOS=linux GOARCH=amd64 go build -o "$BINARY_NAME" .
+          tar -czf "dist/${BINARY_NAME}-linux-amd64.tar.gz" "$BINARY_NAME"
+          rm "$BINARY_NAME"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/*
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install -y gh
+
+      - name: Create GitHub Release (PR-based notes)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          gh release create "$tag" dist/* \
+            --title "$tag" \
+            --generate-notes
