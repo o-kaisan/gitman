@@ -19,3 +19,7 @@ build:
 .PHONY: lint
 lint:
 	staticcheck ./...
+
+.PHONY: install
+install:
+	bash install.sh
