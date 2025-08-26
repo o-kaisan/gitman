@@ -1,6 +1,10 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog"
+	"strings"
+)
 
 type CommitActionTypeMap struct {
 	GetCommitId             ActionType
@@ -105,4 +109,24 @@ func (c CommitActionTypeMap) GetCommitActionTypes(action string) (ActionType, er
 	default:
 		return c.Unknown, fmt.Errorf("unknown action: %s", action)
 	}
+}
+
+func ParseSelectedCommitActionType(selectedLine string) (ActionType, error) {
+	slog.Debug("Selected action from fzf", "selected", selectedLine)
+	if selectedLine == "" {
+		slog.Debug("No action selected")
+		return CommitActionTypes.Unknown, nil
+	}
+
+	// タブで分割
+	fields := strings.Split(selectedLine, "\t")
+
+	// 最初のフィールドだけ取得
+	selectedActionType := fields[0]
+
+	result, err := CommitActionTypes.GetCommitActionTypes(selectedActionType)
+	if err != nil {
+		return CommitActionTypes.Unknown, err
+	}
+	return result, nil
 }

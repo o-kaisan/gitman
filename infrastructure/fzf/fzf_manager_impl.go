@@ -132,30 +132,111 @@ func (fm FzfManagerImpl) SelectCommitAction(commit *model.Commit) (model.ActionT
 	}
 
 	selected := strings.TrimSpace(out.String())
-	SelectedActionType, err := parseSelectedActionType(selected)
+	SelectedActionType, err := model.ParseSelectedCommitActionType(selected)
 	if err != nil {
-		return model.CommitActionTypes.Unknown, fmt.Errorf("failed to parse selected action type: %w", err)
+		return model.CommitActionTypes.Unknown, fmt.Errorf("failed to parse selected commit action type: %w", err)
 	}
 
 	return SelectedActionType, nil
 }
 
-func parseSelectedActionType(selectedLine string) (model.ActionType, error) {
-	slog.Debug("Selected action from fzf", "selected", selectedLine)
-	if selectedLine == "" {
-		slog.Debug("No action selected")
-		return model.CommitActionTypes.Unknown, nil
+func (f FzfManagerImpl) SelectBranch(branches []*model.Branch) (*model.Branch, error) {
+	cmd := exec.Command("fzf",
+		"--ansi",
+		"--prompt=gitman-branch> ",
+		"--preview", "echo {} | awk '{print $1}' | xargs git log --oneline --graph --decorate",
+		"--preview-window=down:65%:nowrap",                // 右側に60%、折り返し表示
+		"--bind", "ctrl-d:preview-down,ctrl-u:preview-up", // ctrl+j / ctrl+k で移動
+		"--bind", "pgdn:preview-page-down,pgup:preview-page-up",
+		"--bind", "ctrl-s:toggle-preview",
+	)
+
+	// 入力データの準備
+	var in bytes.Buffer
+	for _, branch := range branches {
+		in.WriteString(branch.RawGirBranchMessage + "\n")
 	}
 
-	// タブで分割
-	fields := strings.Split(selectedLine, "\t")
+	cmd.Stdin = &in
 
-	// 最初のフィールドだけ取得
-	selectedActionType := fields[0]
+	var out bytes.Buffer
+	cmd.Stdout = &out
 
-	result, err := model.CommitActionTypes.GetCommitActionTypes(selectedActionType)
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
+			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
+				slog.Debug("User cancelled commit id selection")
+				return nil, nil
+			}
+		}
+		return nil, fmt.Errorf("fzf failed: %w", err)
+	}
+	selected := strings.TrimSpace(out.String())
+	if selected == "" {
+		return nil, nil // 選択なしはエラーにせず空文字
+	}
+
+	branchName := strings.Fields(selected)[0]
+	branch, err := model.FindBranchByBranchName(branches, branchName)
 	if err != nil {
-		return model.CommitActionTypes.Unknown, err
+		return nil, err
 	}
-	return result, nil
+	slog.Debug("Selected branch", "branch", branch.Name)
+	return branch, nil
+
+}
+
+func (f FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionType, error) {
+	if branch == nil {
+		return model.BranchActionTypes.Unknown, fmt.Errorf("branch cannot be nil. ")
+	}
+
+	// fzfコマンドの基本設定
+	cmd := exec.Command("fzf",
+		"--ansi",
+		"--prompt=gitman-branch> ",
+		"--delimiter", "\t", // タブを区切りに指定
+		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示
+		"--preview", "printf '%s\n%s\n' {2} {3}", // 2列目=fullCommand, 3列目=Help
+		"--preview-window=right:70%:wrap",
+		"--border",
+	)
+
+	// 入力データの準備
+	var in bytes.Buffer
+	slog.Debug("ActionTypes", "commit.ActionTypes", branch.ActionTypes)
+	for _, actionType := range branch.ActionTypes {
+
+		// fzfに渡す形式: "表示名\tフルコマンド\t説明文"
+		in.WriteString(branch.GetFzfInputForSelectActionType(actionType))
+	}
+
+	slog.Debug("fzf input", "input", in.String())
+	cmd.Stdin = &in
+
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+
+	// コマンド実行
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
+			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
+				slog.Debug("User cancelled action selection")
+				return model.BranchActionTypes.Unknown, nil
+			}
+		}
+		return model.BranchActionTypes.Unknown, fmt.Errorf("fzf failed: %w, stderr: %s", err, errOut.String())
+	}
+
+	selected := strings.TrimSpace(out.String())
+	SelectedActionType, err := model.ParseSelectedBranchActionType(selected)
+	if err != nil {
+		return model.BranchActionTypes.Unknown, fmt.Errorf("failed to parse selected branch action type: %w", err)
+	}
+
+	return SelectedActionType, nil
 }

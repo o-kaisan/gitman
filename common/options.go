@@ -18,7 +18,7 @@ options:
 
 commands:
   branch, %s       show current branch
-  log, %s          show commit log
+  log, %s           show commit log
 
 environment variables:
   GITMAN_DEBUG                debug mode (default: "false")
