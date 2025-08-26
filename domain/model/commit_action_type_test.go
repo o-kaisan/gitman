@@ -86,7 +86,7 @@ func TestCommitActionTypeMap_GetCommitActionTypes(t *testing.T) {
 			args: args{
 				action: "unknown action",
 			},
-			want:           CommitActionTypes.UNKNOWN,
+			want:           CommitActionTypes.Unknown,
 			wantErr:        true,
 			wantErrMessage: fmt.Errorf("unknown action: unknown action"),
 		},

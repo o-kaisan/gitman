@@ -29,7 +29,7 @@ func validGit() (bool, error) {
 	return false, nil
 }
 
-func (gm GitManagerImpl) ExecuteCommand(actionType model.ActionType, commit *model.Commit) error {
+func (gm GitManagerImpl) ExecuteCommitActionCommand(actionType model.ActionType, commit *model.Commit) error {
 	cmd := exec.Command(actionType.Command, commit.GetOptionsWithCommitId(actionType)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -44,7 +44,7 @@ func (gm GitManagerImpl) ExecuteCommand(actionType model.ActionType, commit *mod
 }
 
 func (gm GitManagerImpl) GetCommits() ([]*model.Commit, error) {
-	logDisplayLimit := common.GetEnvWithString("GITMAN_LOG_DISPLAY_LIMIT", "1000")
+	logDisplayLimit := common.GetEnvWithString("GITMAN_LOG_DISPLAY_LIMIT", "100")
 	cmd := exec.Command("git", "log", "--oneline", "--decorate", "-n", logDisplayLimit)
 	out, err := cmd.CombinedOutput()
 	if err != nil {

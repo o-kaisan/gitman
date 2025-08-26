@@ -32,11 +32,11 @@ func (gciu GitCommitUsecase) InteractiveCommitAction() error {
 	if err != nil {
 		return err
 	}
-	if actionType.IsEqual(model.CommitActionTypes.UNKNOWN) {
+	if actionType.IsEqual(model.CommitActionTypes.Unknown) {
 		return nil
 	}
 
-	gciu.gitManager.ExecuteCommand(actionType, targetCommit)
+	gciu.gitManager.ExecuteCommitActionCommand(actionType, targetCommit)
 
 	return nil
 }
@@ -48,7 +48,7 @@ func (gciu GitCommitUsecase) getCommit() (*model.Commit, error) {
 		return nil, err
 	}
 
-	selectedCommit, err := gciu.fzfManager.SelectCommitId(commits)
+	selectedCommit, err := gciu.fzfManager.SelectCommit(commits)
 	if err != nil {
 		return nil, err
 	}

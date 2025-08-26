@@ -38,6 +38,7 @@ func FindCommitById(commits []*Commit, id string) (*Commit, error) {
 func (c Commit) GetFullCommand(actionType ActionType) string {
 	fullCommand := fmt.Sprintf("%s %s", actionType.Command, c.Id)
 	if len(actionType.Options) > 0 {
+		// オプションがない場合
 		fullCommand = fmt.Sprintf("%s %s %s", actionType.Command, actionType.GetOptions(), c.Id)
 	}
 	slog.Debug("Command:", "Command", actionType.Name, "fullCommand", fullCommand)
