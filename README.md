@@ -2,13 +2,23 @@
 
 Your friendly neighbor who’s too lazy to use Git
 
-- [GitMan Demo]()
-
 ## What is gitman
 
-gitman is your friendly Git sidekick 🛠️.  
+gitman is your friendly Git sidekick 🛠️.
 A command-line tool that saves you from typing long commands and memorizing commit hashes.
 Powered by fzf, it helps you navigate branches, commits, and actions with ease — so you can spend more time coding, and less time wrestling with Git.
+
+## Demo
+
+branch view
+
+![gitman-log](./demo/gitman-branch-demo.png)
+![gitman-log-action](./demo/gitman-log-select-action-demo.png)
+
+log view
+
+![gitman-log](./demo/gitman-log-demo.png)
+![gitman-log-action](./demo/gitman-log-select-action-demo.png)
 
 ## Dependence
 
@@ -25,10 +35,6 @@ go install github.com/o-kaisan/gitman@latest
 ```
 
 ## Features
-
-
-
-
 
 ## Environment variable
 
