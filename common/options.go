@@ -23,7 +23,7 @@ commands:
 environment variables:
   GITMAN_DEBUG                debug mode (default: "false")
   GITMAN_LOG_ALIAS            change log command alias (default: "l")
-  GITMAN_LOG_DISPLAY_LIMIT    change log display limit (default: "1000")
+  GITMAN_LOG_DISPLAY_LIMIT    change log display limit (default: "100")
   GITMAN_BRANCH_ALIAS         change branch command alias (default: "br")`, branchCmd, logCmd)
 }
 
