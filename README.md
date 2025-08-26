@@ -28,7 +28,14 @@ go install github.com/o-kaisan/gitman@latest
 
 ### Other
 
-```
+```bash
+# clone
+git clone https://github.com/o-kaisan/gitman.git
+
+# move to repository
+cd gitman
+
+# install to /usr/local/bin
 make install
 # or
 bash install.sh
@@ -50,7 +57,6 @@ gitman l
 - select git command
 ![gitman-log-action](./demo/gitman-log-select-action-demo.png)
 
-
 ### Branch Action
 
 ```
@@ -69,9 +75,9 @@ gitman br
 
 You can control the preview screen using the following shortcuts:
 
-- `Ctrl + S`: Toggle preview display on/off  
-- `Ctrl + D`: Scroll preview down  
-- `Ctrl + U`: Scroll preview up  
+- `Ctrl + S`: Toggle preview display on/off
+- `Ctrl + D`: Scroll preview down
+- `Ctrl + U`: Scroll preview up
 
 ## Environment variable
 
