@@ -8,6 +8,7 @@ import (
 func Usage() string {
 	branchCmd := GetEnvWithString("GITMAN_BRANCH_ALIAS", "br")
 	logCmd := GetEnvWithString("GITMAN_LOG_ALIAS", "l")
+	reflogCmd := GetEnvWithString("GITMAN_REFLOG_ALIAS", "rl")
 
 	return fmt.Sprintf(`usage: gitman [options] [command]
 
@@ -19,13 +20,15 @@ options:
 commands:
   branch, %s       show current branch
   log, %s           show commit log
+  reflog, %s       show reflog
 
 environment variables:
   GITMAN_DEBUG                debug mode (default: "false")
+  GITMAN_FZF_LAYOUT           change fzf layout (default: "reverse")
   GITMAN_LOG_ALIAS            change log command alias (default: "l")
   GITMAN_LOG_DISPLAY_LIMIT    change log display limit (default: "100")
-  GITMAN_FZF_LAYOUT           change fzf layout (default: "reverse")
-  GITMAN_BRANCH_ALIAS         change branch command alias (default: "br")`, branchCmd, logCmd)
+  GITMAN_BRANCH_ALIAS         change branch command alias (default: "br")
+  GITMAN_REFLOG_ALIAS         change reflog command alias (default: "rl")`, branchCmd, logCmd, reflogCmd)
 }
 
 type (
@@ -35,6 +38,7 @@ type (
 		Log     bool
 		Debug   bool
 		Branch  bool
+		Reflog  bool
 	}
 )
 
@@ -45,6 +49,7 @@ func newOptions() *Options {
 		Debug:   false,
 		Log:     false,
 		Branch:  false,
+		Reflog:  false,
 	}
 }
 
@@ -65,6 +70,8 @@ func ParseOptions(args Args) *Options {
 			opts.Log = true
 		case "branch", GetEnvWithString("GITMAN_BRANCH_ALIAS", "br"):
 			opts.Branch = true
+		case "reflog", GetEnvWithString("GITMAN_REFLOG_ALIAS", "rl"):
+			opts.Reflog = true
 		default:
 			fmt.Printf("unrecognized option %s", arg)
 			// 不明なオプションがあった場合はヘルプを表示

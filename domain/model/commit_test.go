@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestCommit_FindCommitById(t *testing.T) {
+func TestFindCommitById(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		commits []*Commit
@@ -20,7 +20,7 @@ func TestCommit_FindCommitById(t *testing.T) {
 		wantErrMessage error
 	}{
 		{
-			name: "コミットIDを指定してコミットを取得すること",
+			name: "コミットIDを指定してコミットを取得できること",
 			args: args{
 				commits: []*Commit{
 					NewCommit("commit1", "commit1", "commit1"),
@@ -106,6 +106,7 @@ func TestCommit_GetFzfInputForSelectActionType(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			c := Commit{
 				Id:           tt.fields.Id,
