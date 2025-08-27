@@ -303,10 +303,10 @@ func (fm FzfManagerImpl) SelectReflog(reflogs []*model.Reflog) (*model.Reflog, e
 	}
 
 	// 選択された行からcommit IDを取得
-	reflogId := strings.Fields(selected)[0]
+	headPoint := strings.Fields(selected)[1]
 
 	// commit IDでreflogを検索
-	reflog, err := model.FindReflogById(reflogs, reflogId)
+	reflog, err := model.FindReflogByHeadPoint(reflogs, headPoint)
 	if err != nil {
 		return nil, err
 	}

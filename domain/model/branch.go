@@ -68,7 +68,7 @@ func (b Branch) GetFzfInputForSelectActionType(actionType ActionType) string {
 	return fmt.Sprintf("%s\tDescription : %s\tCommand     : %s\n", actionType.Name, actionType.Help, b.GetFullCommand(actionType))
 }
 
-func ParseBranches(log string) ([]*Branch, error) {
+func ParseBranches(log string) []*Branch {
 	var branches []*Branch
 
 	lines := strings.Split(strings.TrimSpace(log), "\n")
@@ -109,5 +109,5 @@ func ParseBranches(log string) ([]*Branch, error) {
 	}
 
 	slog.Debug("get branches from git", "branches", branches)
-	return branches, nil
+	return branches
 }
