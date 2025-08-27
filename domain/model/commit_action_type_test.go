@@ -125,7 +125,7 @@ func TestCommitActionTypeMap_All(t *testing.T) {
 				CommitActionTypes.RevertWithoutCommit,
 				CommitActionTypes.CherryPick,
 				CommitActionTypes.CherryPickWithoutCommit,
-				CommitActionTypes.Switch,
+				CommitActionTypes.Checkout,
 			},
 		},
 	}
