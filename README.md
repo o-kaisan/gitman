@@ -86,5 +86,5 @@ You can control the preview screen using the following shortcuts:
 | GITMAN_DEBUG | bool | false |  debug mode|
 | GITMAN_BRANCH_ALIAS | string | br | change branch command alias |
 | GITMAN_LOG_ALIAS | string | l | change log command alias|
-  GITMAN_FZF_LAYOUT | string | reverse | change fzf layout|
+| GITMAN_FZF_LAYOUT | string | reverse | change fzf layout|
 | GITMAN_LOG_DISPLAY_LIMIT | string | 100 |change log display limit|
