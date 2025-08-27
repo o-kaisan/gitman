@@ -221,7 +221,7 @@ func (fm FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionT
 		"--delimiter", "\t", // タブを区切りに指定
 		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示
 		"--preview", "printf '%s\n%s\n' {2} {3}", // 2列目=fullCommand, 3列目=Help
-		"--preview-window=right:70%:wrap",
+		"--preview-window=right:65%:wrap",
 		"--border",
 	)
 
@@ -261,4 +261,111 @@ func (fm FzfManagerImpl) SelectBranchAction(branch *model.Branch) (model.ActionT
 	}
 
 	return SelectedActionType, nil
+}
+
+func (fm FzfManagerImpl) SelectReflog(reflogs []*model.Reflog) (*model.Reflog, error) {
+	cmd := exec.Command("fzf",
+		"--ansi",
+		"--prompt=gitman-reflog> ",
+		"--layout="+fm.fzfLayout,
+		"--preview", "echo {} | awk '{print $1}' | xargs git show --stat --oneline",
+		"--preview-window=down:65%:nowrap",                // 下側に65%、折り返し表示
+		"--bind", "ctrl-d:preview-down,ctrl-u:preview-up", // ctrl+d / ctrl+u で移動
+		"--bind", "pgdn:preview-page-down,pgup:preview-page-up",
+		"--bind", "ctrl-s:toggle-preview",
+	)
+
+	// 入力データの準備
+	var in bytes.Buffer
+	for _, reflog := range reflogs {
+		in.WriteString(reflog.RawReflog + "\n")
+	}
+
+	cmd.Stdin = &in
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
+			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
+				slog.Debug("User cancelled reflog selection")
+				return nil, nil
+			}
+		}
+		return nil, fmt.Errorf("fzf failed: %w", err)
+	}
+
+	selected := strings.TrimSpace(out.String())
+	if selected == "" {
+		return nil, nil // 選択なしはエラーにせず nil を返す
+	}
+
+	// 選択された行からcommit IDを取得
+	reflogId := strings.Fields(selected)[0]
+
+	// commit IDでreflogを検索
+	reflog, err := model.FindReflogById(reflogs, reflogId)
+	if err != nil {
+		return nil, err
+	}
+
+	slog.Debug("Selected reflog", "id", reflog.Id, "headPoint", reflog.HeadPoint, "message", reflog.Message)
+	return reflog, nil
+}
+
+func (fm FzfManagerImpl) SelectReflogAction(reflog *model.Reflog) (model.ActionType, error) {
+	if reflog == nil {
+		return model.ReflogActionTypes.Unknown, fmt.Errorf("reflog cannot be nil")
+	}
+
+	// fzfコマンドの基本設定
+	cmd := exec.Command("fzf",
+		"--ansi",
+		"--layout="+fm.fzfLayout,
+		"--prompt=gitman-reflog> ",
+		"--delimiter", "\t", // タブを区切りに指定
+		"--with-nth=1",                           // 1列目 (ActionName) だけを候補リストに表示
+		"--preview", "printf '%s\n%s\n' {2} {3}", // 2列目=fullCommand, 3列目=Help
+		"--preview-window=right:65%:wrap",
+		"--border",
+	)
+
+	// 入力データの準備
+	var in bytes.Buffer
+	slog.Debug("ActionTypes", "reflog.ActionTypes", reflog.ActionTypes)
+	for _, actionType := range reflog.ActionTypes {
+		// fzfに渡す形式: "表示名\tフルコマンド\t説明文"
+		fzfInput := reflog.GetFzfInputForSelectActionType(actionType)
+		in.WriteString(fzfInput)
+	}
+
+	slog.Debug("fzf input", "input", in.String())
+	cmd.Stdin = &in
+
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+
+	// コマンド実行
+	if err := cmd.Run(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			// ユーザーがキャンセルした場合（ESCキーやCtrl+C）
+			if exitErr.ExitCode() == 1 || exitErr.ExitCode() == 130 {
+				slog.Debug("User cancelled reflog action selection")
+				return model.ReflogActionTypes.Unknown, nil
+			}
+		}
+		return model.ReflogActionTypes.Unknown, fmt.Errorf("fzf failed: %w, stderr: %s", err, errOut.String())
+	}
+
+	selected := strings.TrimSpace(out.String())
+	selectedActionType, err := model.ParseSelectedReflogActionType(selected)
+	if err != nil {
+		return model.ReflogActionTypes.Unknown, fmt.Errorf("failed to parse selected reflog action type: %w", err)
+	}
+
+	return selectedActionType, nil
 }

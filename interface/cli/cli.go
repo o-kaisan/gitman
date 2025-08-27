@@ -45,6 +45,12 @@ func (c Cli) Handle() error {
 			return err
 		}
 
+	case c.options.Reflog:
+		err := c.container.GitReflogUsecase.InteractiveReflogAction()
+		if err != nil {
+			return err
+		}
+
 	default:
 		fmt.Println("Oops! No arguments were given.")
 		fmt.Println("Use 'gitman --help' to see available commands.")

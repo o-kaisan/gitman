@@ -6,6 +6,8 @@
         "oneline",
         "pgdn",
         "pgup",
+        "Reflog",
+        "reflogs",
         "staticcheck",
         "Usecase"
     ]
