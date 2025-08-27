@@ -19,7 +19,7 @@ func NewGitBranchUsecase(fm fzf.FzfManager, gm git.GitManager) GitBranchUsecase 
 }
 
 func (gau GitBranchUsecase) InteractiveBranchAction() error {
-	targeBranch, err := gau.getBranches()
+	targeBranch, err := gau.getBranch()
 	if err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (gau GitBranchUsecase) InteractiveBranchAction() error {
 	return nil
 }
 
-func (gau GitBranchUsecase) getBranches() (*model.Branch, error) {
+func (gau GitBranchUsecase) getBranch() (*model.Branch, error) {
 	branches, err := gau.gitManager.GetBranches()
 	if err != nil {
 		return nil, err
