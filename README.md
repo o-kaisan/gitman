@@ -15,18 +15,18 @@ Powered by fzf, it helps you navigate branches, commits, and actions with ease â
 | name | version |
 | --- | --- |
 | golang | >= 1.24.2 |
-| fzf | >= 0.65.1 |
-| git | >= 1.51.0 |
+| [fzf](https://github.com/junegunn/fzf?tab=readme-ov-file#installation) | >= 0.65.1 |
+| [git](https://git-scm.com/downloads/linux) | >= 1.51.0 |
 
 ## Installation
 
-### With Go
+### Using go
 
 ```bash
 go install github.com/o-kaisan/gitman@latest
 ```
 
-### Other
+### Using git
 
 ```bash
 # clone
