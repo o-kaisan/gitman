@@ -52,10 +52,7 @@ func (gm GitManagerImpl) GetCommits() ([]*model.Commit, error) {
 	}
 
 	commitLog := strings.TrimSpace(string(out))
-	commits, err := model.ParseCommits(commitLog)
-	if err != nil {
-		return nil, err
-	}
+	commits := model.ParseCommits(commitLog)
 
 	slog.Debug("get commitIds from git", "commitIds", commits)
 	return commits, nil
@@ -68,10 +65,7 @@ func (gm GitManagerImpl) GetBranches() ([]*model.Branch, error) {
 		return nil, fmt.Errorf("failed to execute git branch command: %w", err)
 	}
 
-	reflogs, err := model.ParseBranches(string(out))
-	if err != nil {
-		return nil, err
-	}
+	reflogs := model.ParseBranches(string(out))
 	return reflogs, nil
 }
 
@@ -90,12 +84,13 @@ func (gm GitManagerImpl) ExecuteBranchActionCommand(actionType model.ActionType,
 }
 
 func (gm GitManagerImpl) GetReflogs() ([]*model.Reflog, error) {
-	cmd := exec.Command("git", "reflog", "-n", "50")
+	cmd := exec.Command("git", "reflog", "-n", "50", "--no-decorate")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute git reflog command: %w", err)
 	}
 
+	fmt.Println(string(out))
 	slog.Debug("get reflogs from git", "reflogs", out)
 	reflogs, err := model.ParseReflogs(string(out))
 	if err != nil {
@@ -106,7 +101,7 @@ func (gm GitManagerImpl) GetReflogs() ([]*model.Reflog, error) {
 }
 
 func (gm GitManagerImpl) ExecuteReflogActionCommand(actionType model.ActionType, reflog *model.Reflog) error {
-	cmd := exec.Command(actionType.Command, reflog.GetOptionsWithReflogId(actionType)...)
+	cmd := exec.Command(actionType.Command, reflog.GetOptionsWithHeadPoint(actionType)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
