@@ -8,13 +8,12 @@ test:
 
 .PHONY: clean
 clean:
-	rm -f gm
+	rm -f gitman
 
 .PHONY: build
 build:
 	make clean
 	go build gitman.go
-	mv ./gitman ./gm
 
 .PHONY: lint
 lint:
