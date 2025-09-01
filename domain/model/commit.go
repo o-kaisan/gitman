@@ -58,7 +58,7 @@ func (c Commit) GetFzfInputForSelectActionType(actionType ActionType) string {
 }
 
 // git log --oneline の形式をパースして、Commit構造体のスライスを返す
-func ParseCommits(log string) ([]*Commit, error) {
+func ParseCommits(log string) []*Commit {
 	var commits []*Commit
 
 	lines := strings.Split(strings.TrimSpace(log), "\n")
@@ -78,5 +78,5 @@ func ParseCommits(log string) ([]*Commit, error) {
 		commit := NewCommit(id, message, line)
 		commits = append(commits, commit)
 	}
-	return commits, nil
+	return commits
 }

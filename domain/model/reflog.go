@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"log/slog"
-	"regexp"
 	"strings"
 )
 
@@ -29,17 +28,18 @@ func (r Reflog) String() string {
 	return r.Id
 }
 
-func FindReflogById(reflogs []*Reflog, id string) (*Reflog, error) {
+func FindReflogByHeadPoint(reflogs []*Reflog, headPoint string) (*Reflog, error) {
 	for _, reflog := range reflogs {
-		if reflog.Id == id {
+		if reflog.HeadPoint == headPoint {
+			slog.Info("reflog found", "HeadPoint", reflog.HeadPoint)
 			return reflog, nil
 		}
 	}
-	return nil, fmt.Errorf("reflog not found: %s", id)
+	return nil, fmt.Errorf("reflog not found: %s", headPoint)
 }
 
 func (r Reflog) GetFullCommand(actionType ActionType) string {
-	options := r.GetOptionsWithReflogId(actionType)
+	options := r.GetOptionsWithHeadPoint(actionType)
 	onelineOptions := strings.Join(options, " ")
 
 	fullCommand := fmt.Sprintf("%s %s", actionType.Command, onelineOptions)
@@ -48,9 +48,9 @@ func (r Reflog) GetFullCommand(actionType ActionType) string {
 	return fullCommand
 }
 
-func (r Reflog) GetOptionsWithReflogId(actionType ActionType) []string {
+func (r Reflog) GetOptionsWithHeadPoint(actionType ActionType) []string {
 	ret := actionType.Options
-	ret = append(ret, r.Id)
+	ret = append(ret, r.HeadPoint)
 	return ret
 }
 
@@ -67,31 +67,47 @@ func ParseReflogs(reflogs string) ([]*Reflog, error) {
 	lines := strings.Split(strings.TrimSpace(reflogs), "\n")
 	result := make([]*Reflog, 0, len(lines))
 
-	// Regular expression to parse reflog entries
-	// Pattern: {hash} HEAD@{index}: {action}: {message}
-	// HEAD@{index} が並ぶようにあえて(origin/main, origin/HEAD, main) のような情報を含めない
-	reflogPattern := regexp.MustCompile(`^([a-f0-9]+)\s+(HEAD@\{[0-9]+\}):\s+([^:]+):\s*(.*)$`)
-
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
 
-		matches := reflogPattern.FindStringSubmatch(line)
-		if len(matches) != 5 {
-			// If the pattern doesn't match, skip this line or handle as needed
+		// 1. commit id を取得
+		spaceIndex := strings.IndexByte(line, ' ')
+		if spaceIndex == -1 {
+			slog.Warn("invalid reflog line, missing space", "line", line)
+			continue
+		}
+		id := line[:spaceIndex]
+		rest := strings.TrimSpace(line[spaceIndex+1:])
+
+		// 2. HEAD@{n} の位置を探す
+		headStart := strings.Index(rest, "HEAD@{")
+		if headStart == -1 {
+			slog.Warn("invalid reflog line, missing HEAD@{}", "line", line)
 			continue
 		}
 
-		slog.Debug("matches", "matches", matches)
+		// 3. HEAD@{n} の終了位置（"}"）を探す
+		headEnd := strings.Index(rest[headStart:], "}")
+		if headEnd == -1 {
+			slog.Warn("invalid reflog line, incomplete HEAD@{}", "line", line)
+			continue
+		}
+		headEnd += headStart
 
-		id := matches[1]
-		headPoint := matches[2]
-		message := strings.TrimSpace(matches[4])
+		headPoint := rest[headStart : headEnd+1]
+
+		// 4. コロン以降を message 本体として扱う
+		colonIndex := strings.Index(rest[headEnd+1:], ":")
+		if colonIndex == -1 {
+			slog.Warn("invalid reflog line, missing colon", "line", line)
+			continue
+		}
+		message := strings.TrimSpace(rest[headEnd+1+colonIndex+1:])
 
 		reflog := NewReflog(id, headPoint, message, line)
-
 		result = append(result, reflog)
 	}
 
